@@ -1,7 +1,7 @@
 参孝: https://jvns.ca/blog/2022/02/01/a-dns-resolver-in-80-lines-of-go/
 
 ## 実装したい
+- [x] 複数Aレコードを返す
 - [ ] CNAMEレコード対応
-- [ ] 複数Aレコードを返す
 - [ ] 適切なエラーハンドリング
 - [ ] miekg/dnsを使わずにDNSパケットのパース

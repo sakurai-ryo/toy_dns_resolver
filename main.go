@@ -11,14 +11,19 @@ import (
 
 const RootNameServer = "198.41.0.4"
 
-func getAnswer(reply *dns.Msg) net.IP {
-	for _, record := range reply.Answer {
+func getAnswer(reply *dns.Msg) []net.IP {
+	if len(reply.Answer) == 0 {
+		return nil
+	}
+
+	ans := make([]net.IP, len(reply.Answer))
+	for i, record := range reply.Answer {
 		if record.Header().Rrtype == dns.TypeA {
 			fmt.Println("  Ans => ", record)
-			return record.(*dns.A).A
+			ans[i] = record.(*dns.A).A
 		}
 	}
-	return nil
+	return ans
 }
 
 // nameserverに登録されたAレコードを返す
@@ -53,17 +58,18 @@ func dnsQuery(name string, server net.IP) *dns.Msg {
 }
 
 // Answerセクション => Glueレコード => NSレコードの順に問い合わせ
-func resolve(name string) net.IP {
+func resolve(name string) []net.IP {
 	nameserver := net.ParseIP(RootNameServer)
 
 	for {
 		reply := dnsQuery(name, nameserver)
+
 		if ip := getAnswer(reply); ip != nil {
 			return ip
 		} else if nsIP := getGlue(reply); nsIP != nil {
 			nameserver = nsIP
 		} else if domain := getNS(reply); domain != "" {
-			nameserver = resolve(domain)
+			nameserver = resolve(domain)[0]
 		} else {
 			panic("DNS failed")
 		}
