@@ -15,7 +15,7 @@ func getCNAME(reply *dns.Msg) string {
 	for _, record := range reply.Answer {
 		if record.Header().Rrtype == dns.TypeCNAME {
 			fmt.Println("  ", record)
-			return record.(*dns.CNAME).String()
+			return record.(*dns.CNAME).Target
 		}
 	}
 	return ""
@@ -74,10 +74,10 @@ func resolve(name string) []net.IP {
 	for {
 		reply := dnsQuery(name, nameserver)
 
-		if cname := getCNAME(reply); cname != "" {
-			nameserver = resolve(cname)[0]
-		} else if ip := getAnswer(reply); ip != nil {
+		if ip := getAnswer(reply); ip != nil {
 			return ip
+		} else if cname := getCNAME(reply); cname != "" {
+			return resolve(cname)
 		} else if nsIP := getGlue(reply); nsIP != nil {
 			nameserver = nsIP
 		} else if domain := getNS(reply); domain != "" {
