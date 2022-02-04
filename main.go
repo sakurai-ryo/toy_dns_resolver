@@ -11,6 +11,16 @@ import (
 
 const RootNameServer = "198.41.0.4"
 
+func getCNAME(reply *dns.Msg) string {
+	for _, record := range reply.Answer {
+		if record.Header().Rrtype == dns.TypeCNAME {
+			fmt.Println("  ", record)
+			return record.(*dns.CNAME).String()
+		}
+	}
+	return ""
+}
+
 func getAnswer(reply *dns.Msg) []net.IP {
 	if len(reply.Answer) == 0 {
 		return nil
@@ -64,7 +74,9 @@ func resolve(name string) []net.IP {
 	for {
 		reply := dnsQuery(name, nameserver)
 
-		if ip := getAnswer(reply); ip != nil {
+		if cname := getCNAME(reply); cname != "" {
+			nameserver = resolve(cname)[0]
+		} else if ip := getAnswer(reply); ip != nil {
 			return ip
 		} else if nsIP := getGlue(reply); nsIP != nil {
 			nameserver = nsIP
@@ -83,5 +95,5 @@ func main() {
 		name = name + "."
 	}
 
-	fmt.Println("Result:", resolve(name))
+	fmt.Printf("\nAnswer:\n%v\n", resolve(name))
 }
