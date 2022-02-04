@@ -19,7 +19,7 @@ func getAnswer(reply *dns.Msg) []net.IP {
 	ans := make([]net.IP, len(reply.Answer))
 	for i, record := range reply.Answer {
 		if record.Header().Rrtype == dns.TypeA {
-			fmt.Println("  Ans => ", record)
+			fmt.Println("  ", record)
 			ans[i] = record.(*dns.A).A
 		}
 	}
@@ -30,7 +30,7 @@ func getAnswer(reply *dns.Msg) []net.IP {
 func getGlue(reply *dns.Msg) net.IP {
 	for _, record := range reply.Extra {
 		if record.Header().Rrtype == dns.TypeA {
-			fmt.Println("  Glue => ", record)
+			fmt.Println("  ", record)
 			return record.(*dns.A).A
 		}
 	}
@@ -41,7 +41,7 @@ func getGlue(reply *dns.Msg) net.IP {
 func getNS(reply *dns.Msg) string {
 	for _, record := range reply.Ns {
 		if record.Header().Rrtype == dns.TypeNS {
-			fmt.Println("  NS => ", record)
+			fmt.Println("  ", record)
 			return record.(*dns.NS).Ns
 		}
 	}
